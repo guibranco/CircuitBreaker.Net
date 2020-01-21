@@ -1,8 +1,7 @@
-﻿using System;
+﻿using CircuitBreaker.Net.Exceptions;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-
-using CircuitBreaker.Net.Exceptions;
 
 namespace CircuitBreaker.Net.States
 {
@@ -18,7 +17,7 @@ namespace CircuitBreaker.Net.States
         private int _isBeingInvoked;
 
         public HalfOpenCircuitBreakerState(
-            ICircuitBreakerSwitch @switch, 
+            ICircuitBreakerSwitch @switch,
             ICircuitBreakerInvoker invoker,
             TimeSpan timeout)
         {
@@ -76,7 +75,6 @@ namespace CircuitBreaker.Net.States
             {
                 throw new CircuitBreakerOpenException();
             }
-;
         }
 
         public async Task<T> InvokeAsync<T>(Func<Task<T>> func)

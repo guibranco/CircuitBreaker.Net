@@ -1,17 +1,14 @@
+using CircuitBreaker.Net.Exceptions;
+using CircuitBreaker.Net.States;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-
-using CircuitBreaker.Net.Exceptions;
-using CircuitBreaker.Net.States;
 
 namespace CircuitBreaker.Net
 {
     internal class CircuitBreakerInvoker : ICircuitBreakerInvoker
     {
         private readonly TaskScheduler _taskScheduler;
-
-        private Timer _timer;
 
         public CircuitBreakerInvoker(TaskScheduler taskScheduler)
         {
@@ -20,9 +17,10 @@ namespace CircuitBreaker.Net
 
         public void InvokeScheduled(Action action, TimeSpan interval)
         {
-            if (action == null) throw new ArgumentNullException("action");
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
 
-            _timer = new Timer(_ => action(), null, (int)interval.TotalMilliseconds, Timeout.Infinite);
+            var unused = new Timer(_ => action(), null, (int)interval.TotalMilliseconds, Timeout.Infinite);
         }
 
         public void InvokeThrough(ICircuitBreakerState state, Action action, TimeSpan timeout)
@@ -105,7 +103,7 @@ namespace CircuitBreaker.Net
             tokenSource.Cancel();
             throw new CircuitBreakerTimeoutException();
         }
-        
+
 
         private async Task InvokeAsync(Func<Task> func, TimeSpan timeout)
         {

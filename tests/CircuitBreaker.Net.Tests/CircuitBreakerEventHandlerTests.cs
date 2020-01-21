@@ -1,7 +1,7 @@
-﻿using System;
+﻿using NSubstitute;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using NSubstitute;
 using Xunit;
 
 namespace CircuitBreaker.Net.Tests
@@ -9,14 +9,14 @@ namespace CircuitBreaker.Net.Tests
     public class CircuitBreakerEventHandlerTests
     {
         private const int MaxFailures = 1;
-        private readonly TimeSpan ResetTimeout = TimeSpan.FromMilliseconds(100);
-        private readonly TimeSpan Timeout = TimeSpan.FromMilliseconds(100);
+        private readonly TimeSpan _resetTimeout = TimeSpan.FromMilliseconds(100);
+        private readonly TimeSpan _timeout = TimeSpan.FromMilliseconds(100);
         private readonly CircuitBreaker _sut;
         private readonly ICircuitBreakerEventHandler _eventHandler;
 
         public CircuitBreakerEventHandlerTests()
         {
-            _sut = new CircuitBreaker(TaskScheduler.Default, MaxFailures, Timeout, ResetTimeout);
+            _sut = new CircuitBreaker(TaskScheduler.Default, MaxFailures, _timeout, _resetTimeout);
             _eventHandler = Substitute.For<ICircuitBreakerEventHandler>();
             _sut.EventHandler = _eventHandler;
         }
@@ -31,12 +31,12 @@ namespace CircuitBreaker.Net.Tests
             {
                 _sut.Execute(_throwAction);
             }
-            catch (Exception _)
-            {
-            }
+            // ReSharper disable once EmptyGeneralCatchClause
+            catch (Exception)
+            { }
             _eventHandler.Received().OnCircuitOpened(_sut);
 
-            Thread.Sleep(ResetTimeout);
+            Thread.Sleep(_resetTimeout);
             Thread.Sleep(10);
 
             _sut.Execute(_anyAction);

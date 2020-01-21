@@ -1,9 +1,7 @@
-﻿using System;
+﻿using CircuitBreaker.Net.Exceptions;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-
-using CircuitBreaker.Net.Exceptions;
-
 using Xunit;
 
 namespace CircuitBreaker.Net.Tests
@@ -11,13 +9,13 @@ namespace CircuitBreaker.Net.Tests
     public class CircuitBreakerTests
     {
         private const int MaxFailures = 3;
-        private readonly TimeSpan ResetTimeout = TimeSpan.FromMilliseconds(100);
-        private readonly TimeSpan Timeout = TimeSpan.FromMilliseconds(100);
+        private readonly TimeSpan _resetTimeout = TimeSpan.FromMilliseconds(100);
+        private readonly TimeSpan _timeout = TimeSpan.FromMilliseconds(100);
         private readonly CircuitBreaker _sut;
 
         public CircuitBreakerTests()
         {
-            _sut = new CircuitBreaker(TaskScheduler.Default, MaxFailures, Timeout, ResetTimeout);
+            _sut = new CircuitBreaker(TaskScheduler.Default, MaxFailures, _timeout, _resetTimeout);
         }
 
         public class ExecuteActionTests : CircuitBreakerTests
@@ -38,7 +36,7 @@ namespace CircuitBreaker.Net.Tests
             [Fact]
             public void Timeouts()
             {
-                
+
                 Assert.Throws<CircuitBreakerTimeoutException>(() => _sut.Execute(_timeoutAction));
                 Assert.Throws<CircuitBreakerTimeoutException>(() => _sut.Execute(_timeoutAction));
                 Assert.Throws<CircuitBreakerTimeoutException>(() => _sut.Execute(_timeoutAction));
@@ -61,10 +59,10 @@ namespace CircuitBreaker.Net.Tests
                 Assert.ThrowsAny<Exception>(() => _sut.Execute(_throwAction));
                 Assert.ThrowsAny<Exception>(() => _sut.Execute(_throwAction));
                 Assert.ThrowsAny<Exception>(() => _sut.Execute(_throwAction));
-                
-                Thread.Sleep(ResetTimeout);
+
+                Thread.Sleep(_resetTimeout);
                 Thread.Sleep(100);
-                
+
                 _sut.Execute(_anyAction);
             }
         }
@@ -108,8 +106,8 @@ namespace CircuitBreaker.Net.Tests
                 Assert.ThrowsAny<Exception>(() => _sut.Execute(_throwFunc));
                 Assert.ThrowsAny<Exception>(() => _sut.Execute(_throwFunc));
                 Assert.ThrowsAny<Exception>(() => _sut.Execute(_throwFunc));
-                
-                Thread.Sleep(ResetTimeout);
+
+                Thread.Sleep(_resetTimeout);
                 Thread.Sleep(100);
 
                 _sut.Execute(_anyFunc);
@@ -156,7 +154,7 @@ namespace CircuitBreaker.Net.Tests
                 await Assert.ThrowsAnyAsync<Exception>(() => _sut.ExecuteAsync(_throwAction));
                 await Assert.ThrowsAnyAsync<Exception>(() => _sut.ExecuteAsync(_throwAction));
 
-                Thread.Sleep(ResetTimeout);
+                Thread.Sleep(_resetTimeout);
                 Thread.Sleep(100);
 
                 await _sut.ExecuteAsync(_anyAction);
@@ -204,7 +202,7 @@ namespace CircuitBreaker.Net.Tests
                 await Assert.ThrowsAnyAsync<Exception>(() => _sut.ExecuteAsync(_throwAction));
                 await Assert.ThrowsAnyAsync<Exception>(() => _sut.ExecuteAsync(_throwAction));
 
-                await Task.Delay(ResetTimeout);
+                await Task.Delay(_resetTimeout);
                 await Task.Delay(10);
 
                 await _sut.ExecuteAsync(_anyAction);

@@ -1,24 +1,23 @@
-﻿using System;
-using System.Threading.Tasks;
-using CircuitBreaker.Net.Exceptions;
+﻿using CircuitBreaker.Net.Exceptions;
 using CircuitBreaker.Net.States;
 using NSubstitute;
+using System;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace CircuitBreaker.Net.Tests.States
 {
     public class HalfOpenCircuitBreakerStateTests
     {
-        private readonly TimeSpan Timeout = TimeSpan.FromMilliseconds(100);
+        private readonly TimeSpan _timeout = TimeSpan.FromMilliseconds(100);
         private readonly ICircuitBreakerInvoker _invoker;
         private readonly HalfOpenCircuitBreakerState _sut;
-        private readonly ICircuitBreakerSwitch _switch;
 
         public HalfOpenCircuitBreakerStateTests()
         {
-            _switch = Substitute.For<ICircuitBreakerSwitch>();
+            var @switch = Substitute.For<ICircuitBreakerSwitch>();
             _invoker = Substitute.For<ICircuitBreakerInvoker>();
-            _sut = new HalfOpenCircuitBreakerState(_switch, _invoker, Timeout);
+            _sut = new HalfOpenCircuitBreakerState(@switch, _invoker, _timeout);
         }
 
         public class InvokeTests : HalfOpenCircuitBreakerStateTests
@@ -26,9 +25,9 @@ namespace CircuitBreaker.Net.Tests.States
             [Fact]
             public void InvokesOnlyFirstAction()
             {
-                Action action = () => {};
+                Action action = () => { };
                 _sut.Invoke(action);
-                _invoker.Received().InvokeThrough(Arg.Is(_sut), action, Timeout);
+                _invoker.Received().InvokeThrough(Arg.Is(_sut), action, _timeout);
                 _invoker.ClearReceivedCalls();
 
                 Assert.Throws<CircuitBreakerOpenException>(() => _sut.Invoke(action));
@@ -40,7 +39,7 @@ namespace CircuitBreaker.Net.Tests.States
             {
                 Func<object> func = () => new object();
                 _sut.Invoke(func);
-                _invoker.Received().InvokeThrough(Arg.Is(_sut), func, Timeout);
+                _invoker.Received().InvokeThrough(Arg.Is(_sut), func, _timeout);
                 _invoker.ClearReceivedCalls();
 
                 Assert.Throws<CircuitBreakerOpenException>(() => _sut.Invoke(func));
@@ -55,7 +54,7 @@ namespace CircuitBreaker.Net.Tests.States
             {
                 Func<Task> action = () => Task.FromResult(false);
                 await _sut.InvokeAsync(action);
-                await _invoker.Received().InvokeThroughAsync(Arg.Is(_sut), action, Timeout);
+                await _invoker.Received().InvokeThroughAsync(Arg.Is(_sut), action, _timeout);
                 _invoker.ClearReceivedCalls();
 
                 await Assert.ThrowsAsync<CircuitBreakerOpenException>(() => _sut.InvokeAsync(action));
@@ -67,7 +66,7 @@ namespace CircuitBreaker.Net.Tests.States
             {
                 Func<Task<object>> func = () => Task.FromResult(new object());
                 await _sut.InvokeAsync(func);
-                await _invoker.Received().InvokeThroughAsync(Arg.Is(_sut), func, Timeout);
+                await _invoker.Received().InvokeThroughAsync(Arg.Is(_sut), func, _timeout);
                 _invoker.ClearReceivedCalls();
 
                 await Assert.ThrowsAsync<CircuitBreakerOpenException>(() => _sut.InvokeAsync(func));

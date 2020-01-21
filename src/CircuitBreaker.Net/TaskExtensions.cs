@@ -1,8 +1,7 @@
-﻿using System;
+﻿using CircuitBreaker.Net.Exceptions;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-
-using CircuitBreaker.Net.Exceptions;
 
 namespace CircuitBreaker.Net
 {
@@ -21,7 +20,7 @@ namespace CircuitBreaker.Net
             }
 
             // tcs.Task will be returned as a proxy to the caller
-            TaskCompletionSource<TResult> tcs =
+            var tcs =
                 new TaskCompletionSource<TResult>();
 
             // Short-circuit #2: zero timeout
@@ -33,7 +32,7 @@ namespace CircuitBreaker.Net
             }
 
             // Set up a timer to complete after the specified timeout period
-            Timer timer = new Timer(
+            var timer = new Timer(
                 state =>
                 {
                     // Recover your state information
@@ -79,7 +78,7 @@ namespace CircuitBreaker.Net
             }
 
             // tcs.Task will be returned as a proxy to the caller
-            TaskCompletionSource<VoidTypeStruct> tcs =
+            var tcs =
                 new TaskCompletionSource<VoidTypeStruct>();
 
             // Short-circuit #2: zero timeout
@@ -91,7 +90,7 @@ namespace CircuitBreaker.Net
             }
 
             // Set up a timer to complete after the specified timeout period
-            Timer timer = new Timer(
+            var timer = new Timer(
                 state =>
                     {
                         // Recover your state information
@@ -126,24 +125,24 @@ namespace CircuitBreaker.Net
             return tcs.Task;
         }
 
-        internal struct VoidTypeStruct
+        private struct VoidTypeStruct
         {
         }
 
-        internal static void MarshalTaskResults<TResult>(
+        private static void MarshalTaskResults<TResult>(
             Task source,
             TaskCompletionSource<TResult> proxy)
         {
             switch (source.Status)
             {
                 case TaskStatus.Faulted:
-                    proxy.TrySetException(source.Exception);
+                    proxy.TrySetException(source.Exception ?? new Exception());
                     break;
                 case TaskStatus.Canceled:
                     proxy.TrySetCanceled();
                     break;
                 case TaskStatus.RanToCompletion:
-                    Task<TResult> castedSource = source as Task<TResult>;
+                    var castedSource = source as Task<TResult>;
                     proxy.TrySetResult(
                         castedSource == null
                             ? default(TResult)

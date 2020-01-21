@@ -1,8 +1,7 @@
-﻿using System;
+﻿using CircuitBreaker.Net.States;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-
-using CircuitBreaker.Net.States;
 
 namespace CircuitBreaker.Net
 {
@@ -35,7 +34,7 @@ namespace CircuitBreaker.Net
 
             _openedState = new OpenCircuitBreakerState(
                 this,
-                invoker, 
+                invoker,
                 circuitResetTimeout);
 
             _currentState = _closedState;
@@ -53,7 +52,7 @@ namespace CircuitBreaker.Net
         public virtual T Execute<T>(Func<T> func)
         {
             if (func == null) throw new ArgumentNullException("func");
-            
+
             return _currentState.Invoke(func);
         }
 
@@ -91,12 +90,10 @@ namespace CircuitBreaker.Net
 
         private bool TryToTrip(ICircuitBreakerState from, ICircuitBreakerState to)
         {
-            if (Interlocked.CompareExchange(ref _currentState, to, from) == from)
-            {
-                to.Enter();
-                return true;
-            }
-            return false;
+            if (Interlocked.CompareExchange(ref _currentState, to, @from) != @from)
+                return false;
+            to.Enter();
+            return true;
         }
     }
 }

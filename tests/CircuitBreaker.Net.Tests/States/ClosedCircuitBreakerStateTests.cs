@@ -1,9 +1,6 @@
-﻿using System;
-
-using CircuitBreaker.Net.States;
-
+﻿using CircuitBreaker.Net.States;
 using NSubstitute;
-
+using System;
 using Xunit;
 
 namespace CircuitBreaker.Net.Tests.States
@@ -12,16 +9,15 @@ namespace CircuitBreaker.Net.Tests.States
     {
         private const int MaxFailures = 3;
 
-        private readonly TimeSpan Timeout = TimeSpan.FromMilliseconds(100);
-        private readonly ICircuitBreakerInvoker _invoker;
+        private readonly TimeSpan _timeout = TimeSpan.FromMilliseconds(100);
         private readonly ClosedCircuitBreakerState _sut;
         private readonly ICircuitBreakerSwitch _switch;
 
         public ClosedCircuitBreakerStateTests()
         {
             _switch = Substitute.For<ICircuitBreakerSwitch>();
-            _invoker = Substitute.For<ICircuitBreakerInvoker>();
-            _sut = new ClosedCircuitBreakerState(_switch, _invoker, MaxFailures, Timeout);
+            var invoker = Substitute.For<ICircuitBreakerInvoker>();
+            _sut = new ClosedCircuitBreakerState(_switch, invoker, MaxFailures, _timeout);
         }
 
         public class InvocationFailsTests : ClosedCircuitBreakerStateTests
